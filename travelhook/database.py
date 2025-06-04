@@ -871,6 +871,38 @@ class Trip:
                 }
             )
 
+    async def get_belgiantrain_composition(self):
+        if "composition" in self.status or "failedcomposition-belgiantrain" in self.status:
+            return
+        if not self.status["train"]["no"]:
+            return
+        if not (8800000 < (self.status["fromStation"]["uic"] or 0) < 8900000):
+            return
+
+        print(self.status["train"]["no"])
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    "https://www.belgiantrain.be/api/routeplanner/GetTrainComposition/?from=" +
+                    f"{self.status['fromStation']['uic']}" +
+                    "&to=" +
+                    f"{self.status['toStation']['uic']}" +
+                    "&trainNumber=" +
+                    f"{self.status['train']['no']}" +
+                    "&depDateTime=" +
+                    datetime.fromtimestamp(self.status["fromStation"]["realTime"]).strftime("%m/%d/%Y %H:%M:%S") +
+                    "&hasdeparted=True&occupancyLevel=1" # Juckt nicht, aber muss da sein
+                , 
+                headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+        }) as response:
+                    print(await response.text())
+                    
+        except:
+            print(f"belgiantrain request broke")
+            traceback.print_exc()
+            self.patch_patch({"failedcomposition-belgiantrain": True})
+            return
 
 @dataclass
 class Message:

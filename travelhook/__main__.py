@@ -137,6 +137,7 @@ async def handle_status_update(userid, reason, status):
     trip.fetch_headsign()  # also runs fetch_hafas_data in the background
     trip.maybe_fix_1970()
     await trip.get_oebb_composition()
+    await trip.get_belgiantrain_composition()
     trip.get_db_composition()
     await trip.get_vagonweb_composition()
     await trip.get_rtt_composition()
